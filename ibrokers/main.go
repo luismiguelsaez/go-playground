@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 )
 
 func getRefCode(token string, queryId string) (string, error) {
@@ -16,13 +17,13 @@ func getRefCode(token string, queryId string) (string, error) {
 
 	resp, err := http.Get(rcRequest)
 	if err != nil {
-		return "", errors.New("Error while sending request")
+		return "", errors.New("error while sending request: " + err.Error())
 	}
 
 	httpBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		return "", errors.New("Error while reading response body")
+		return "", errors.New("error while reading response body: " + err.Error())
 	}
 
 	re := regexp.MustCompilePOSIX("<ReferenceCode>(.*)</ReferenceCode>")
@@ -33,33 +34,40 @@ func getRefCode(token string, queryId string) (string, error) {
 	return refCode, nil
 }
 
+func getStatement(token string, refCode string) (string, error) {
+	var stRequest string = "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&&v=3&q=" + refCode
+
+	resp, err := http.Get(stRequest)
+	if err != nil {
+		return "", errors.New("error while sending request: " + err.Error())
+	}
+
+	httpBody, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return "", errors.New("error while reading response body: " + err.Error())
+	}
+
+	return string(httpBody), nil
+}
+
 func main() {
 
 	token := os.Getenv("IB_TOKEN")
 
 	codeReq, err := getRefCode(token, "479814")
 	if err != nil {
-		fmt.Println("Got error while requesting reference code")
+		fmt.Println("Got error while requesting reference code: " + err.Error())
 	} else {
 		fmt.Println(codeReq)
 	}
 
-	//time.Sleep(5 * time.Second)
-	//
-	//stRequest := "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&&v=3&q=" + string(refCode)
-	//fmt.Printf("Getting flex query: %s\n", stRequest)
-	//respst, errst := http.Get(stRequest)
-	//if errst != nil {
-	//	fmt.Printf("Got error: %v\n", errst)
-	//}
-	//
-	//fmt.Printf("Got HTTP status code %v\n", respst.StatusCode)
-	//
-	//sthttpBody, err := io.ReadAll(respst.Body)
-	//resp.Body.Close()
-	//if err != nil {
-	//	fmt.Printf("Got error while ready body contents: %s", err)
-	//}
-	//
-	//fmt.Printf("Query body: %s", sthttpBody)
+	time.Sleep(5 * time.Second)
+
+	queryData, err := getStatement(token, codeReq)
+	if err != nil {
+		fmt.Println("Got error while requesting query data: " + err.Error())
+	} else {
+		fmt.Println(queryData)
+	}
 }
