@@ -54,12 +54,12 @@ func getStatement(token string, refCode string) (string, error) {
 func main() {
 
 	token := os.Getenv("IB_TOKEN")
+	queryId := os.Getenv("IB_QUERY_ID")
 
-	codeReq, err := getRefCode(token, "479814")
+	codeReq, err := getRefCode(token, queryId)
 	if err != nil {
 		fmt.Println("Got error while requesting reference code: " + err.Error())
-	} else {
-		fmt.Println(codeReq)
+		os.Exit(1)
 	}
 
 	time.Sleep(5 * time.Second)
