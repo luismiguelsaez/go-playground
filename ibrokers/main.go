@@ -29,7 +29,11 @@ func getRefCode(token string, queryId string) (string, error) {
 	re := regexp.MustCompilePOSIX("<ReferenceCode>(.*)</ReferenceCode>")
 	submatches := re.FindSubmatch(httpBody)
 
-	refCode = string(submatches[1])
+	if len(submatches) > 1 {
+		refCode = string(submatches[1])
+	} else {
+		return "", errors.New("no matching reference code in response body: " + err.Error())
+	}
 
 	return refCode, nil
 }
