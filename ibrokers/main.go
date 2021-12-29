@@ -1,33 +1,28 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"regexp"
-	"time"
 )
 
-func main() {
+func getRefCode(token string, queryId string) (string, error) {
 
-	token := os.Getenv("IB_TOKEN")
-
-	var rcRequest string = "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest?t=" + token + "&q=479814&v=3"
+	var rcRequest string = "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest?t=" + token + "&q=" + queryId + "&v=3"
 	var refCode string = ""
-	fmt.Printf("Obtaining reference code from %s\n", rcRequest)
 
 	resp, err := http.Get(rcRequest)
 	if err != nil {
-		fmt.Printf("Got error: %v\n", err)
+		return "", errors.New("Error while sending request")
 	}
-
-	fmt.Printf("Got HTTP status code %v\n", resp.StatusCode)
 
 	httpBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		fmt.Printf("Got error while ready body contents: %s", err)
+		return "", errors.New("Error while reading response body")
 	}
 
 	re := regexp.MustCompilePOSIX("<ReferenceCode>(.*)</ReferenceCode>")
@@ -35,22 +30,36 @@ func main() {
 
 	refCode = string(submatches[1])
 
-	time.Sleep(5 * time.Second)
+	return refCode, nil
+}
 
-	stRequest := "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&&v=3&q=" + string(refCode)
-	fmt.Printf("Getting flex query: %s\n", stRequest)
-	respst, errst := http.Get(stRequest)
-	if errst != nil {
-		fmt.Printf("Got error: %v\n", errst)
-	}
+func main() {
 
-	fmt.Printf("Got HTTP status code %v\n", respst.StatusCode)
+	token := os.Getenv("IB_TOKEN")
 
-	sthttpBody, err := io.ReadAll(respst.Body)
-	resp.Body.Close()
+	codeReq, err := getRefCode(token, "479814")
 	if err != nil {
-		fmt.Printf("Got error while ready body contents: %s", err)
+		fmt.Println("Got error while requesting reference code")
+	} else {
+		fmt.Println(codeReq)
 	}
 
-	fmt.Printf("Query body: %s", sthttpBody)
+	//time.Sleep(5 * time.Second)
+	//
+	//stRequest := "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&&v=3&q=" + string(refCode)
+	//fmt.Printf("Getting flex query: %s\n", stRequest)
+	//respst, errst := http.Get(stRequest)
+	//if errst != nil {
+	//	fmt.Printf("Got error: %v\n", errst)
+	//}
+	//
+	//fmt.Printf("Got HTTP status code %v\n", respst.StatusCode)
+	//
+	//sthttpBody, err := io.ReadAll(respst.Body)
+	//resp.Body.Close()
+	//if err != nil {
+	//	fmt.Printf("Got error while ready body contents: %s", err)
+	//}
+	//
+	//fmt.Printf("Query body: %s", sthttpBody)
 }
