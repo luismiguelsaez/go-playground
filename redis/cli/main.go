@@ -2,10 +2,22 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
+	"math/rand"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
+
+func RandomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+	s := make([]rune, n)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
+}
 
 func main() {
 
@@ -17,15 +29,24 @@ func main() {
 		DB:       0,
 	})
 
-	err := rdb.Set(ctx, "key", "value", 0).Err()
-	if err != nil {
-		panic(err)
-	}
+	for i := 0; i < 10; i++ {
+		var rand_key string = RandomString(12)
+		var rand_val string = RandomString(24)
 
-	val, err := rdb.Get(ctx, "key").Result()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Got value: %v", val)
+		err := rdb.Set(ctx, rand_key, rand_val, 0).Err()
+		if err != nil {
+			log.Println("Got push error: " + err.Error())
+			continue
+		}
+		log.Printf("Pushed key [%v] value [%v]\n", rand_key, rand_val)
 
+		val, err := rdb.Get(ctx, rand_key).Result()
+		if err != nil {
+			log.Println("Got read error: " + err.Error())
+			continue
+		}
+		log.Printf("Got key [%v] value [%v]\n", rand_key, val)
+
+		time.Sleep(time.Second * 1)
+	}
 }
