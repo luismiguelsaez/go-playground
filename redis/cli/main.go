@@ -10,9 +10,9 @@ import (
 )
 
 func RandomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	var letters = []int32("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-	s := make([]rune, n)
+	s := make([]int32, n)
 	for i := range s {
 		s[i] = letters[rand.Intn(len(letters))]
 	}
@@ -35,15 +35,15 @@ func main() {
 
 		err := rdb.Set(ctx, rand_key, rand_val, 0).Err()
 		if err != nil {
-			log.Println("Got push error: " + err.Error())
+			log.Println("Got set error: " + err.Error())
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		log.Printf("Pushed key [%v] value [%v]\n", rand_key, rand_val)
+		log.Printf("Set key [%v] value [%v]\n", rand_key, rand_val)
 
 		val, err := rdb.Get(ctx, rand_key).Result()
 		if err != nil {
-			log.Println("Got read error: " + err.Error())
+			log.Println("Got get error: " + err.Error())
 			time.Sleep(time.Second * 1)
 			continue
 		}
