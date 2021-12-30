@@ -29,13 +29,14 @@ func main() {
 		DB:       0,
 	})
 
-	for i := 0; i < 10; i++ {
+	for {
 		var rand_key string = RandomString(12)
 		var rand_val string = RandomString(24)
 
 		err := rdb.Set(ctx, rand_key, rand_val, 0).Err()
 		if err != nil {
 			log.Println("Got push error: " + err.Error())
+			time.Sleep(time.Second * 1)
 			continue
 		}
 		log.Printf("Pushed key [%v] value [%v]\n", rand_key, rand_val)
@@ -43,6 +44,7 @@ func main() {
 		val, err := rdb.Get(ctx, rand_key).Result()
 		if err != nil {
 			log.Println("Got read error: " + err.Error())
+			time.Sleep(time.Second * 1)
 			continue
 		}
 		log.Printf("Got key [%v] value [%v]\n", rand_key, val)
