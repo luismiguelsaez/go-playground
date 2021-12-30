@@ -49,6 +49,6 @@ func main() {
 		}
 		log.Printf("Got key [%v] value [%v]\n", rand_key, val)
 
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 100)
 	}
 }
