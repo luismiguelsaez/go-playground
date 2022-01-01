@@ -39,7 +39,7 @@ func main() {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		log.Printf("Set key [%v] value [%v]\n", rand_key, rand_val)
+		log.Printf("Set key [%v] > [%v]\n", rand_key, rand_val)
 
 		val, err := rdb.Get(ctx, rand_key).Result()
 		if err != nil {
@@ -47,7 +47,7 @@ func main() {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		log.Printf("Got key [%v] value [%v]\n", rand_key, val)
+		log.Printf("Got key [%v] < [%v]\n", rand_key, val)
 
 		time.Sleep(time.Millisecond * 100)
 	}

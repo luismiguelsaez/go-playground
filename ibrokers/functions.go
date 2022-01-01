@@ -24,19 +24,21 @@ func getRefCode(token string, queryId string) (string, error) {
 	}
 
 	re := regexp.MustCompilePOSIX("<ReferenceCode>(.*)</ReferenceCode>")
-	submatches := re.FindStringSubmatch(string(httpBody))
+	var submatches []string = re.FindStringSubmatch(string(httpBody))
 
-	if len(submatches) > 1 {
+	if len(submatches) > 0 {
 		refCode = string(submatches[1])
 	} else {
-		return "", errors.New("no matching reference code in response body: " + err.Error())
+		ree := regexp.MustCompilePOSIX("<ErrorMessage>(.*)</ErrorMessage>")
+		var errorMatch []string = ree.FindStringSubmatch(string(httpBody))
+		return "", errors.New("no matching reference code in response body: " + string(errorMatch[1]))
 	}
 
 	return refCode, nil
 }
 
 func getStatement(token string, refCode string) (string, error) {
-	var stRequest string = "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&&v=3&q=" + refCode
+	var stRequest string = "https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement?t=" + token + "&v=3&q=" + refCode
 
 	resp, err := http.Get(stRequest)
 	if err != nil {
